@@ -21,7 +21,7 @@ export default {
       const x = e.pageX - this.offsetLeft;
       const y = e.pageY - this.offsetTop;
       const hoverPercent = Math.round(x / $(this).width() * 100);
-      let index = Math.floor(self.imageList.length * (hoverPercent/100));
+      let index = Math.floor((self.imageList.length+4) * (hoverPercent/100));
 
       index = index == 0 ? 0 : index-1;
       let bodyindex = index == 0 ? 0 : index-1;
