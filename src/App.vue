@@ -35,8 +35,7 @@ export default {
   },
   methods: {
     getImages() {
-      const url = this.dev ? 'http://cors-anywhere.herokuapp.com/http://delete.fnu.nu/chilicam/list.php' :
-                             'http://delete.fnu.nu/chilicam/list.php';
+      const url = 'http://cors-anywhere.herokuapp.com/http://delete.fnu.nu/chilicam/list.php';
       fetch(url)
         .then(response => response.json())
         .then(response => {
