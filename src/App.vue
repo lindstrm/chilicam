@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :style="{ backgroundImage: bgimage }">
+  <div id="app" :style="{ backgroundImage: bgimage }" v-touch:swipe="swipe">
     <div class="">
       <h1>chilicam</h1>
       <h2>{{ currentImage.replace('.jpg','') }}</h2>
@@ -12,32 +12,53 @@
 import $ from 'jquery';
 export default {
   name: 'app',
-  data() { return { currentImage: 'Webcam.jpg', imageList: [] }; },
+  data() { return { currentImage: 'Webcam.jpg', imageList: [], swipeIndex: 0 }; },
   mounted() {
     this.getImages();
     var self = this;
 
-    $('#app').mousemove(function(e) {
-      const x = e.pageX - this.offsetLeft;
-      const y = e.pageY - this.offsetTop;
-      const hoverPercent = Math.round(x / $(this).width() * 100);
-      let index = Math.floor((self.imageList.length+4) * (hoverPercent/100));
-
-      index = index == 0 ? 0 : index-1;
-      let bodyindex = index == 0 ? 0 : index-1;
-
-      self.currentImage = self.imageList[index];
-
-      $('body').css({
-        backgroundImage: `url(http://delete.fnu.nu/chilicam/${encodeURIComponent(self.imageList[bodyindex])})`
-      })
+    $('#app').mousemove(function(event) {
+      self.scrub(event);
     })
   },
   methods: {
+    swipe(event) {
+      let index = event.offsetDirection === 2 ? ++this.swipeIndex : --this.swipeIndex;
+
+      if(index < 0) index = 0;
+      else if(index > this.imageList.length) index = this.imageList.length - 1;
+
+      this.currentImage = this.imageList[index];
+
+      this.setBodyBG(index);
+    },
+
+    scrub(event) {
+      var self = this;
+      const x = event.pageX - $('#app').offset().left;
+      const y = event.pageY - $('#app').offset().top;
+      const hoverPercent = Math.round(x / $('#app').width() * 100);
+      let index = Math.floor((self.imageList.length) * (hoverPercent/100));
+      // console.log(self)
+      index = index == 0 ? 0 : index-1;
+
+      self.currentImage = self.imageList[index];
+
+      self.setBodyBG(index);
+    },
+
+    setBodyBG(index) {
+      let bodyindex = index == 0 ? 0 : index-1;
+      $('body').css({
+        backgroundImage: `url(http://delete.fnu.nu/chilicam/${encodeURIComponent(this.imageList[bodyindex])})`
+      });
+    },
+
     getImages() {
       const url = 'http://cors-anywhere.herokuapp.com/http://delete.fnu.nu/chilicam/list.php';
-      fetch(url)
-        .then(response => response.json())
+      this.$http.get(url)
+        .then(response => JSON.parse(response.body))
+        // .then(response => console.log(response))
         .then(response => {
           this.currentImage = response[response.length-1];
           this.imageList = response;
@@ -46,10 +67,6 @@ export default {
   },
 
   computed: {
-    dev() {
-      return process.env.NODE_ENV === 'development';
-    },
-
     bgimage() {
       return `url(http://delete.fnu.nu/chilicam/${encodeURIComponent(this.currentImage)})`
     }
