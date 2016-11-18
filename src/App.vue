@@ -1,8 +1,9 @@
 <template>
-  <div id="app" :style="{ backgroundImage: bgimage }" v-touch:swipe="swipe">
+  <div id="app" :style="{ backgroundImage: bgimage }" v-touch:pan="scrub">
     <div class="">
       <h1>chilicam</h1>
       <h2>{{ currentImage.replace('.jpg','') }}</h2>
+      <h2 class="portrait-notice">Looks best in landscape mode!</h2>
       <!-- <img :src="'http://delete.fnu.nu/chilicam/'+ currentImage" id="scrubber"> -->
     </div>
   </div>
@@ -22,24 +23,13 @@ export default {
     })
   },
   methods: {
-    swipe(event) {
-      let index = event.offsetDirection === 2 ? ++this.swipeIndex : --this.swipeIndex;
-
-      if(index < 0) index = 0;
-      else if(index > this.imageList.length) index = this.imageList.length - 1;
-
-      this.currentImage = this.imageList[index];
-
-      this.setBodyBG(index);
-    },
-
     scrub(event) {
-      var self = this;
-      const x = event.pageX - $('#app').offset().left;
-      const y = event.pageY - $('#app').offset().top;
-      const hoverPercent = Math.round(x / $('#app').width() * 100);
-      let index = Math.floor((self.imageList.length) * (hoverPercent/100));
-      // console.log(self)
+      const self = this;
+      const pageX = event.pageX ? event.pageX : event.pointers[0].pageX;
+      const x = pageX - $('#app').offset().left;
+      let hoverPercent = Math.round(x / $('#app').width() * 100);
+      hoverPercent = hoverPercent < 0 ? 0 : (hoverPercent > 100 ? 100 : hoverPercent);
+      let index = Math.floor((this.imageList.length) * (hoverPercent/100));
       index = index == 0 ? 0 : index-1;
 
       self.currentImage = self.imageList[index];
@@ -58,7 +48,6 @@ export default {
       const url = 'http://cors-anywhere.herokuapp.com/http://delete.fnu.nu/chilicam/list.php';
       this.$http.get(url)
         .then(response => JSON.parse(response.body))
-        // .then(response => console.log(response))
         .then(response => {
           this.currentImage = response[response.length-1];
           this.imageList = response;
@@ -76,7 +65,6 @@ export default {
 
 <style>
 @import url('https://fonts.googleapis.com/css?family=Shrikhand');
-
 body {
   font-family: 'Shrikhand', cursive;
   background-color: rgb(38, 40, 36);
@@ -101,5 +89,29 @@ body {
    margin: 0 0 0 20px;
  }
 
+.portrait-notice {
+  display: none;
+}
+
 #scrubber { width: 100%; max-height: 100%; }
+
+@media screen and (max-width: 500px) {
+  .portrait-notice {
+    display: block;
+  }
+
+  h1, h2 {
+    /*font-size: 3em;*/
+  }
+
+  #app {
+    background-position: -330px 0
+  }
+}
+/* Landscape */
+
+@media screen and (orientation:landscape) {
+  /* Landscape styles here */
+}
+
 </style>
